@@ -1,0 +1,40 @@
+/**
+ * myzulipdb -- IdDB for deployer with zulip tables
+ */
+new
+deployId(`rho:rchain:deployId`),
+deployerId(`rho:rchain:deployerId`),
+lookup(`rho:registry:lookup`),
+insertArbitrary(`rho:registry:insertArbitrary`),
+IdDBCh,
+log(`rho:io:stderr`)
+in {
+    lookup!(`__ID_DB_URI__`, *IdDBCh) |
+    for (IdDB <- IdDBCh) {
+        log!({"IdDB": *IdDB}) |
+        new dbCh in {
+            IdDB!(*dbCh) |
+            for (db, readOnly <- dbCh) {
+                log!({"db": *db, "readOnly": *readOnly}) |
+                new uriCh in {
+                    insertArbitrary!(*readOnly, *uriCh)|
+                    for (@uri <- uriCh) {
+                        log!({"db readOnly facet registered at": uri}) |
+                        deployId!(uri) |
+
+                        // Initialize DB
+                        db!("create_table", "zerver_message", Nil) |
+                        db!("create_table", "zerver_usermessage", Nil) |
+                        db!("create_table", "zerver_extension", Nil) |
+                        db!("create_table", "zerver_realm", Nil) |
+                        db!("create_table", "zerver_stream", Nil) |
+                        db!("create_table", "zerver_userprofile", Nil) |
+
+                        // Use URI as part of private channel for DB
+                        @{[*deployerId, uri]}!(*db)
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,45 @@
+{% extends "zerver/portico_signup.html" %}
+{% block portico_content %}
+<div class="register-account flex full-page">
+    <div class="center-block new-style" style="padding: 20px 0px">
+        <div class="pitch">
+            <h1>{{ _('YOUR WALLET') }}</h1>
+            {% trans %}
+            <h2>Please carefully save your private key, it can&rsquo;t be retrived!!!</h2>
+            {% endtrans %}
+        </div>
+        <div class="center-block info-box inline-block" style="text-align: center;">
+            <h5>REV address</h5>
+            <div id="rev_address" class="my_user_status" style="word-wrap: break-word;">
+                {{ rev_address }}
+            </div>
+            <h5 class="">Public key</h5>
+            <div id="public_key" class="my_user_status" style="word-wrap: break-word;">
+                {{ public_key }}
+            </div>
+            <h5 class="">Private key</h5>
+            <div id="private_key">{{ private_key }}</div>
+        </div>
+
+        <div class="" style="text-align: center;">
+            <h4 id="jump" style="pointer-events: none;">Back to home</h4>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+    $.post("http://localhost:40406/newAccount", {}, function (data) {
+        // console.log(data)
+        $("#rev_address").html(data.revAddr)
+        $("#public_key").html(data.pubKey)
+        $("#private_key").html(data.privKey)
+
+        $("#jump").css({ "pointer-events": "all", "cursor": "pointer" })
+
+        $("#jump").on("click", () => {
+            url = "/add_wallet?rev_address=" + data.revAddr + "&public_key=" + data.pubKey
+            window.location.href = url
+        })
+    });
+</script>
+{% endblock %}
